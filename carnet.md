@@ -339,7 +339,7 @@ ajouterMessage(
 
 ### J1-03 · 💥 Ça marche… jusqu'à quand — [fiche](checkpoints/J1-03-jusqua-quand.md)
 
-- [ ] Validé
+- [x] Validé
 - Liste de contrôle de la version 1 (cinq à huit comportements essayés) :
   1. Au chargement, un message d'accueil s'affiche avec 4 boutons de suggestion. ✔
   2. La touche Entrée et le bouton ➤ envoient le message. ✔
@@ -360,10 +360,20 @@ ajouterMessage(
     - Ce qui marche maintenant : après 2 messages puis F5, les messages sont toujours là. Effacer puis F5 donne un seul message d'accueil (pas de doublon). Les 8 lignes de la liste de contrôle et le bouton Effacer de la v2 sont toujours OK.
     - Ce qui marchait et ne marche plus : (1) la conversation n'est gardée qu'une fois : 2 messages, F5, un 3e message, F5 → tout a disparu sauf le dernier message. (2) Un bouton de suggestion sur lequel on a cliqué disparaît, mais il réapparaît après F5 sur le message d'avant.
     - Ce que je n'avais pas vu, et comment je l'ai trouvé : le premier F5 marchait, donc la nouveauté avait l'air de fonctionner ; le problème n'apparaît qu'en envoyant un message après un rechargement, puis en rechargeant encore. Je l'ai trouvé en enchaînant F5 → message → F5, pas en testant la nouveauté une seule fois.
-  - Modification 3 :
-- Chasse à l'angle mort (ce qui a été trouvé, et par qui) :
-- Deux phrases de conclusion :
-- Difficulté qui reste :
+  - Modification 3 (`chatbot-v4.html`), même conversation Mistral. Limite de notre cahier personnel : 200.
+    - Ce que j'ai demandé : « Refuse les messages de plus de 200 caractères. » Mistral a répondu « C'est fait ✅ Les messages de plus de 200 caractères sont maintenant refusés », avec une constante `MAX_CARACTERES`, un texte d'aide dans le champ (« 200 caractères max »), et a proposé une autre solution (`maxlength="200"`) à laquelle nous n'avons pas répondu.
+    - Ce qui marche maintenant : un message trop long n'apparaît pas dans le chat ; le bot répond un avertissement avec le nombre de caractères (par exemple « (202) »), et le texte reste dans le champ pour être raccourci. Après F5, l'avertissement est toujours là.
+    - Ce qui marchait et ne marche plus : une question courte suivie de beaucoup d'espaces est refusée : « horaires » + des espaces donne l'avertissement « (299) » alors que la vraie question fait 8 lettres (avant, elle recevait les horaires). Le bug de la v3 n'est pas corrigé : le bouton « Puis-je avoir un reçu fiscal ? » réapparaît après F5 sur le message précédent.
+    - Ce que je n'avais pas vu, et comment je l'ai trouvé : la limite compte aussi les espaces, alors que le message vide, lui, est détecté en enlevant les espaces ; je l'ai trouvé en essayant exprès un message court rempli d'espaces. Un texte que je croyais faire 201 caractères en faisait 202 : j'ai dû générer des textes de longueur exacte pour tester la limite.
+- Chasse à l'angle mort (ce qui a été trouvé, et par qui) : Pierre-Yves, seul (pas de voisin disponible), sur `chatbot-v4.html` :
+  - message vide : pas envoyé ✔ ;
+  - message trop long (202 caractères) : refusé avec un avertissement, le texte reste dans le champ ;
+  - « horaires » suivi de beaucoup d'espaces : refusé (« 299 »), alors que la question est courte ✘ ;
+  - rechargements (F5) enchaînés avec des messages : les anciens messages disparaissent, les boutons de suggestion déjà cliqués réapparaissent ✘ ;
+  - en relisant le code avec un assistant IA, une piste non reproduite à la main : si on clique sur Effacer pendant que le bot « réfléchit » (0,35 s), sa réponse arrive quand même dans la conversation vidée. Trop rapide pour le tester à la main : noté comme non vérifié.
+  - Pas essayé : `<b>gras</b>`, deux messages très rapides, fenêtre à 360 px.
+- Deux phrases de conclusion : la modification 2 (garder les messages au rechargement) a cassé le plus de choses, alors que Mistral affirmait « C'est fait ✅ » et que le premier F5 semblait marcher. Sans la liste de contrôle et sans enchaîner F5 → message → F5, je ne l'aurais pas su : il aurait fallu qu'un utilisateur perde sa conversation pour s'en rendre compte.
+- Difficulté qui reste : la conversation Mistral de J1-02 n'était pas sur mon poste, j'ai dû repartir d'une nouvelle conversation ; tester une limite de 200 caractères demande des textes de longueur exacte (un texte « de 201 » en faisait 202) ; le débordement du bandeau vert n'apparaît pas à chaque fois, ce qui le rend difficile à prouver.
 
 ### J1-04 · 🎲 Même prompt, autre réponse — [fiche](checkpoints/J1-04-meme-prompt.md)
 
