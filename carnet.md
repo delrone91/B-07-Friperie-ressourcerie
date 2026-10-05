@@ -398,11 +398,53 @@ ajouterMessage(
 
 ### J1-05 · 🛠 dsh en main — [fiche](checkpoints/J1-05-dsh-en-main.md)
 
-- [ ] Validé
-- Preuve (`dsh --version`, mode Read Only, modèle `capweb-ia`, `git status -- atelier` propre ; **jamais la clé**) :
+- [x] Validé
+- Preuve (`dsh --version`, mode Read Only, modèle `capweb-ia`, `git status -- atelier` propre ; **jamais la clé**) : `dsh --version` → `0.1.5-rc.2` ; `settings.yaml` avec le modèle `capweb-ia` et `defaultPreset: read-only` ; clé uniquement dans `~/dsh-capweb/.credentials.yaml` (droits `-rw-------`), aucun fichier de clé dans le dépôt ; dans l'interface `dsh web`, sur le dossier `atelier` : modèle `capweb-ia` affiché et `/permission` → Read Only (vu par Pierre-Yves); `git status -- atelier` avant et après l'agent → « nothing to commit, working tree clean ».
+- Adaptations et incidents :
+  - Poste sous WSL (Linux, bash) : notice suivie dans sa version macOS, avec `~/.bashrc` à la place de `~/.zshrc`.
+  - À l'installation, npm a bloqué 5 scripts d'installation (dont `node-pty` et `dsh-subprocess-local`), non autorisés ; dsh a quand même répondu.
+  - Premier essai : `dsh: AUTH: 401` (clé mal recopiée dans `.credentials.yaml`, vérifié en comparant l'empreinte de la clé sans l'afficher) ; clé recollée, puis `dsh --profile headless "Reponds uniquement OK"` a répondu.
+  - Photo de départ : `atelier` était déjà identique au zip et propre, donc pas de commit « point de départ » supplémentaire.
 - La consigne exacte envoyée à l'agent et sa réponse :
+  - Consigne : « Liste les fichiers de ce dossier et dis ce que fait chacun. Donne le chemin de chaque fichier. Si tu ne sais pas ce que fait un fichier, écris « je ne sais pas ». N'écris rien et ne modifie rien. »
+  - Réponse (telle quelle, chemins absolus raccourcis en `atelier/…`) :
+
+    > Voici les fichiers du dossier atelier :
+    > - `atelier/.gitignore` : liste les dossiers/fichiers ignorés par Git (node_modules/, dist/, preuves/, test-results/, playwright-report/, coverage/).
+    > - `atelier/README.md` : documentation de l'atelier J1 « Cap Web » — comment démarrer le serveur (npm start), vérifier (npm test, npm run verify), et organisation des checkpoints.
+    > - `atelier/browser/depart.spec.js` : test navigateur Playwright — vérifie que la page / affiche le titre Cap Web, contient un élément status, et ne produit aucune erreur JavaScript.
+    > - `atelier/eslint.config.js` : configuration ESLint (flat config) — définit des règles pédagogiques simples (no-unused-vars, eqeqeq, no-var, prefer-const) et les variables globales autorisées côté navigateur vs côté Node.
+    > - `atelier/package-lock.json` : fichier de verrouillage npm — fige les versions exactes des dépendances installées (@axe-core/playwright, @playwright/test, eslint et leurs sous-dépendances).
+    > - `atelier/package.json` : manifeste du projet — nom cap-web-atelier, mode modules ES, moteur Node >=24.20, scripts (start, test, lint, test:browser, verify) et devDépendances.
+    > - `atelier/playwright.config.js` : configuration Playwright — dossier de tests ./browser, URL de base http://127.0.0.1:4173, projet Chromium headless, et lancement automatique du serveur local (node server/start.js).
+    > - `atelier/public/index.html` : page d'accueil HTML — structure avec `<h1>Cap Web</h1>`, paragraphe de présentation, élément `<p id="status" role="status">`, lie styles.css et js/app.js.
+    > - `atelier/public/js/app.js` : petit script exécuté dans le navigateur — met le texte « Votre point de départ est prêt. » dans l'élément #status.
+    > - `atelier/public/styles.css` : feuille de style de base — police système, marges, couleur de texte et largeur max du contenu.
+    > - `atelier/server/app.js` : crée le serveur HTTP Node (createApp) — ne sert qu'une liste explicite de fichiers publics, avec bons types MIME, n'autorise que GET/HEAD, sert /version.json, répond 404/405 sinon sans divulguer les fichiers privés.
+    > - `atelier/server/start.js` : point d'entrée du serveur — fixe le dossier public, lit/valide le port (PORT ou 3000), écoute sur 127.0.0.1, gère l'arrêt propre sur SIGINT/SIGTERM.
+    > - `atelier/tests/server.test.js` : suite de 9 tests serveur avec le lanceur intégré de Node — vérifie HTML/CSS/JS servis, HEAD sans corps, /version.json, 404 sur inconnu, 405 sur POST, et non-divulgation des chemins privés et tentatives de traversal encodé.
 - Pour chaque fichier cité : existe ou non, description juste ou fausse, pourquoi ; et un fichier qu'il n'a pas cité :
-- Difficulté qui reste :
+
+  | Fichier cité | Existe ? | Description | Pourquoi (vérifié en ouvrant le fichier) |
+  |---|---|---|---|
+  | `.gitignore` | oui | juste | les 6 entrées citées sont exactement celles du fichier |
+  | `README.md` | oui | juste, un peu vague | parle bien de `npm start`, `npm test`, `npm run verify` ; « organisation des checkpoints » se limite à un renvoi vers les fiches |
+  | `browser/depart.spec.js` | oui | juste | un seul test : titre h1 « Cap Web », rôle `status` présent, aucune erreur JavaScript |
+  | `eslint.config.js` | oui | juste mais incomplète | il cite 4 règles, le fichier en a 5 : il oublie `no-undef` |
+  | `package-lock.json` | oui | en partie fausse | les 3 dépendances sont justes, mais elles ne sont **pas installées** : il n'y a pas de dossier `node_modules` (on n'a jamais lancé `npm ci`) |
+  | `package.json` | oui | juste | nom, `"type": "module"`, Node >=24.20.0, les 5 scripts et les 3 devDependencies |
+  | `playwright.config.js` | oui | juste | `./browser`, `http://127.0.0.1:4173`, chromium headless, `node server/start.js` |
+  | `public/index.html` | oui | juste | h1, paragraphe, `p#status` avec `role="status"`, liens vers `styles.css` et `js/app.js` ; il ne cite pas `main` |
+  | `public/js/app.js` | oui | juste | une seule ligne, `textContent` sur `#status` |
+  | `public/styles.css` | oui | juste | police système, marge 2rem, couleur, `max-width: 48rem` sur `main` (il ne dit pas que c'est sur `main`) |
+  | `server/app.js` | oui | juste | liste `FICHIERS` explicite, types MIME, 405 hors GET/HEAD, `/version.json`, 404 sinon |
+  | `server/start.js` | oui | juste | `PORT` validé entre 1 et 65535, défaut 3000, hôte fixé à 127.0.0.1, arrêt sur SIGINT/SIGTERM |
+  | `tests/server.test.js` | oui | juste | 9 `test(…)` comptés, mêmes sujets |
+
+  - Aucun fichier inventé ; il n'a jamais écrit « je ne sais pas ».
+  - Fichier qu'il n'a pas cité : dans `atelier`, il les a tous cités (13 sur 13, comparé avec `git ls-files`). Il n'a pas signalé non plus ce qui **manque** : pas de `node_modules`, donc `npm run lint` et `npm run test:browser` ne marcheraient pas sans `npm ci`. Hors de son dossier, il ne voit ni `carnet.md` ni `essais-n0/`.
+- La barrière (étape 10) : demande « Crée le fichier public/essai-dsh.txt contenant ok » ; dsh a demandé l'autorisation d'écrire, refusée ; l'agent a répondu « Je n'ai pas créé le fichier public/essai-dsh.txt. Le dossier est en mode lecture seule : la création a été bloquée, et l'autorisation d'écriture nécessaire a été refusée. » Vérifié ensuite : `atelier/public/` ne contient que `index.html`, `js/`, `styles.css`, et `git status -- atelier` ne montre rien.
+- Difficulté qui reste : la notice ne couvre pas Linux/WSL ni les scripts d'installation bloqués par npm ; il a fallu les adapter. L'erreur 401 venait d'une clé mal recopiée : le message de dsh ne dit pas si la clé est fausse ou coupée, il a fallu le vérifier autrement.
 
 ### J1-06 · 🧱 Anatomie d'un prompt — [fiche](checkpoints/J1-06-anatomie-dun-prompt.md)
 
