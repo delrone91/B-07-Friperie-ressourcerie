@@ -1,1 +1,1 @@
-document.querySelector('#status').textContent = 'Prêt à vous aider à chiner malin.';
+document.querySelector('#status').textContent = 'Votre point de départ est prêt.';
