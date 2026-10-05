@@ -12,7 +12,7 @@ Trois questions auxquelles l'assistant pourrait répondre :
 2. Quels sont les horaires d'ouverture ?
 3. Où trouver une friperie vintage ?
 
-Rôles de départ et moments d'échange :
+Rôles de départ et moments d'échange : Delrone manipule, Pierre-Yves vérifie. On échange les rôles environ toutes les 20 minutes (au premier échange, l'autre arrête le serveur avec Ctrl+C et le relance avec `npm start`).
 
 ## Cahier personnel (remis par le formateur en J1-01)
 
@@ -27,6 +27,8 @@ Recopiez les valeurs telles que le formateur vous les a remises. Ne les changez 
 Notez le dossier de lancement, la commande et sa sortie exacte, surtout quand un outil a bloqué.
 
 - Dossier : `atelier`
+- Commande et résultat : `node --version` → `v24.21.0` (24.20 minimum demandé).
+- Dossier : `atelier`
 - Commande et résultat : `npm start` lance le serveur et la page de départ s'affiche dans le navigateur.
 - Dossier : `atelier`
 - Commande et résultat : `npm test` lance les 9 tests du serveur et les 9 passent sans échec.
@@ -39,15 +41,15 @@ Pour chaque checkpoint : cochez la case quand toute la preuve de la fiche est r�
 
 ### J1-01 · 🧭 Équipage — [fiche](checkpoints/J1-01-equipage.md)
 
-- [ ] Validé
+- [x] Validé
 - Preuve (page de départ affichée sur votre poste, cahier personnel recopié ci-dessus) : La page Cap Web s'affiche dans le navigateur avec le statut « Votre point de départ est prêt. » et le cahier personnel b07 est recopié plus haut.
 - Le `p#status` est-il vide dans le HTML ? Qui écrit sa phrase ? Oui, dans `index.html` la balise `<p id="status" role="status"></p>` est vide. C'est le script `public/js/app.js` qui écrit la phrase « Votre point de départ est prêt. » quand la page se charge.
 - Décision prise ensemble : La page de l'atelier avait été modifiée trop tôt (titre, liste, couleurs, commit « étape 3 ») alors que J1-01 demande de ne pas la toucher et que les modifications de J1-03 se font dans `essais-n0`. Nous avons remis `atelier/public` dans son état de départ.
-- Difficulté qui reste :
+- Difficulté qui reste : pas de difficulté technique pour lancer la page (l'échange de rôles avec Ctrl+C puis `npm start` a marché). La difficulté a été l'organisation : la page de l'atelier a été modifiée trop tôt puis remise à zéro.
 
 ### J1-02 · 💬 Premier prompt — [fiche](checkpoints/J1-02-premier-prompt.md)
 
-- [ ] Validé
+- [x] Validé
 - Preuve : `essais-n0/chatbot-v1.html` s'ouvre ; le prompt et la première réponse sont collés ci-dessous, en entier, sans donnée personnelle.
 - Mon prompt, tel quel : « Fais-moi un chatbot pour les clients des friperies et ressourceries, dans une seule page HTML que j'ouvre dans mon navigateur. »
 - La première réponse du chat (texte et code), telle quelle : Sur Le Chat de Mistral, il n'a écrit aucun texte avant le code. Il a répondu directement avec un canvas nommé « Chatbot Friperie & Ressourcerie » qui contient ce code.
@@ -332,7 +334,8 @@ ajouterMessage(
   1. J'ai été surpris d'avoir une réponse cohérente quand j'ai parlé du prix, alors que la page ne fait aucun appel à une API. Tout est écrit d'avance dans la page.
   2. Quand j'ai écrit « vous me les prenez pour combien », il m'a répondu avec la liste des prix de vente en boutique.
   3. Dès qu'on pousse un peu, on trouve très vite la limite. Quand j'ai demandé « peut import la marque du vêtement ? », il a répondu qu'il n'avait pas encore la réponse et m'a donné un numéro de téléphone et une adresse mail.
-- Difficulté qui reste :
+  4. Message hors thème (ajouté par Pierre-Yves en vérifiant) : à « Quelle est la capitale du Japon ? », il répond « Hmm, je n'ai pas encore la réponse à cette question 😅 » et propose des mots-clés (« horaires », « don », « prix », « dépôt-vente », « tri », « réparation ») ainsi qu'un téléphone et un e-mail inventés. Il ne sort pas de son thème, mais il ne dit pas non plus que la question est hors sujet.
+- Difficulté qui reste : sous WSL, le double-clic sur `chatbot-v1.html` dans VS Code ouvre le code et pas la page ; il a fallu coller le chemin `\\wsl.localhost\...` dans le navigateur.
 
 ### J1-03 · 💥 Ça marche… jusqu'à quand — [fiche](checkpoints/J1-03-jusqua-quand.md)
 
