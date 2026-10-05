@@ -377,11 +377,22 @@ ajouterMessage(
 
 ### J1-04 · 🎲 Même prompt, autre réponse — [fiche](checkpoints/J1-04-meme-prompt.md)
 
-- [ ] Validé
-- Le prompt de référence (identique aux trois essais) :
-- Le tableau des écarts (trois colonnes A, B, C ; au moins quatre critères ; des faits, pas des impressions) :
-- Une phrase de conclusion (ce que ces écarts autorisent, ce qu'ils interdisent de supposer) :
-- Difficulté qui reste :
+- [x] Validé
+- Le prompt de référence (identique aux trois essais) : « Fais-moi un chatbot pour les clients des friperies et ressourceries, dans une seule page HTML que j'ouvre dans mon navigateur. » — recopié mot pour mot depuis J1-02, collé tel quel dans trois nouvelles conversations Mistral.
+- Le tableau des écarts (trois colonnes A, B, C ; au moins quatre critères ; des faits, pas des impressions) : trois nouvelles conversations Mistral, codes collés tels quels dans `essais-n0/essai-A.html`, `essai-B.html`, `essai-C.html`. Mêmes essais sur les trois pages : « horaires », « Quelle est la capitale du Japon ? », message vide, F5, largeur 360 px (F12 puis Ctrl+Shift+M).
+
+  | Critère | A | B | C |
+  |---|---|---|---|
+  | Structure du code | 304 lignes, un fichier, script en bas, 17 règles de mots-clés | 363 lignes, un fichier, script en bas, infos boutique regroupées en haut du script, 16 intentions (Mistral en annonce 15) | 298 lignes, un fichier, script en bas, 11 règles + 3 règles de politesse |
+  | Réponse à « horaires » | horaires : mardi–vendredi 10h–18h30, samedi 10h–17h, fermé dimanche et lundi | horaires : mardi–vendredi 10h–18h30, samedi 9h30–19h, fermé dimanche et lundi | horaires : **lundi**–vendredi 10h–18h30, samedi 10h–17h, fermé dimanche |
+  | Hors thème (« capitale du Japon ») | « Je n'ai pas bien compris votre question 😅 » + liste de sujets | « Hmm, je ne suis pas sûr d'avoir compris 😅 » + exemples de questions | 3 réponses différentes pour 3 fois la même question (phrase tirée au hasard dans le code) |
+  | Message vide | pas envoyé | pas envoyé | pas envoyé |
+  | F5 (rechargement) | retour au message d'accueil, conversation perdue (pas de `localStorage`) | idem | idem |
+  | Largeur 360 px | zone des messages petite, il faut défiler ; le bandeau du haut cache une partie des messages et des suggestions | idem A | le bandeau du haut et la zone de saisie ne prennent pas toute la largeur ; quelques problèmes de marges et de débordement |
+  | Ce qui manque | pas de bouton Effacer, pas de mémoire, pas de limite de caractères | idem | idem, et pas d'animation « en train d'écrire » |
+  | Ce qui diffère (noms, textes, ton) | bouton « Envoyer » ; adresse « 12 rue de la Récup', 75000 Ville » ; réponses du bot affichées avec `innerHTML` | bouton « ➤ » ; boutique à Lyon, téléphone en 04 ; réponses affichées avec `textContent` | bouton « Envoyer » ; « Ressour**s**erie » mal écrit 5 fois (dont le titre) ; pas d'adresse ; heure affichée sur chaque message ; Mistral tutoie dans sa réponse (A et B : vouvoiement) |
+- Une phrase de conclusion (ce que ces écarts autorisent, ce qu'ils interdisent de supposer) : avec le même prompt, on peut compter sur un chatbot à mots-clés qui répond aux horaires et ignore le message vide, mais on ne peut rien supposer du reste (les horaires eux-mêmes, l'orthographe, le nombre de règles, l'affichage sur téléphone, ni même que la description de Mistral corresponde à son code) : chaque version doit être vérifiée.
+- Difficulté qui reste : je ne savais pas comment tester une largeur de 360 px ; il a fallu découvrir le mode « appareil » des outils du navigateur (F12 puis Ctrl+Shift+M). Les trois pages ont été testées par Pierre-Yves seul.
 
 ## L'agent (N1 Demander)
 

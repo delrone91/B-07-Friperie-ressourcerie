@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assistant Friperie & Ressourcerie</title>
+    <style>
+      :root {
+        --vert: #2e7d5b;
+        --vert-clair: #e8f4ef;
+        --creme: #2f2a26;
+        --beige: #faf6f0;
+        --bulle-bot: #ffffff;
+        --bulle-user: #2e7d5b;
+        --texte-user: #ffffff;
+        --radius: 14px;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--beige);
+        color: var(--creme);
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 16px;
+      }
+      .app {
+        width: 100%;
+        max-width: 640px;
+        background: var(--vert-clair);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.12);
+        display: flex;
+        flex-direction: column;
+        height: min(90vh, 800px);
+        overflow: hidden;
+      }
+      header {
+        background: var(--vert);
+        color: #fff;
+        padding: 18px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      header .logo {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        background: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px;
+      }
+      header h1 { margin: 0; font-size: 1.1rem; }
+      header p { margin: 2px 0 0; font-size: .8rem; opacity: .85; }
+      #chat {
+        flex: 1;
+        overflow-y: auto;
+        padding: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .msg {
+        max-width: 82%;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        line-height: 1.45;
+        font-size: .95rem;
+        white-space: pre-line;
+        animation: pop .18s ease-out;
+      }
+      @keyframes pop { from { transform: translateY(6px); opacity: 0; } to { transform: none; opacity: 1; } }
+      .bot { background: var(--bulle-bot); align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+      .user { background: var(--bulle-user); color: var(--texte-user); align-self: flex-end; border-bottom-right-radius: 4px; }
+      .msg b { color: var(--vert); }
+      .user b { color: #fff; }
+      .suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 10px; }
+      .suggestions button {
+        border: 1px solid var(--vert);
+        color: var(--vert);
+        background: #fff;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: .8rem;
+        cursor: pointer;
+        transition: background .15s;
+      }
+      .suggestions button:hover { background: #d9ede3; }
+      form {
+        display: flex;
+        gap: 8px;
+        padding: 12px 16px 16px;
+        background: #fff;
+        border-top: 1px solid #dbe8e2;
+      }
+      input {
+        flex: 1;
+        border: 1px solid #cfdcd6;
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-size: .95rem;
+        outline: none;
+      }
+      input:focus { border-color: var(--vert); }
+      form button {
+        background: var(--vert);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 11px 18px;
+        font-size: .95rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      form button:hover { background: #246348; }
+      .typing { display: inline-flex; gap: 4px; padding: 14px 16px; }
+      .typing span {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: #9bb8ad;
+        animation: blink 1s infinite;
+      }
+      .typing span:nth-child(2) { animation-delay: .2s; }
+      .typing span:nth-child(3) { animation-delay: .4s; }
+      @keyframes blink { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="logo">🧺</div>
+        <div>
+          <h1>Assistant Friperie &amp; Ressourcerie</h1>
+          <p>Posez vos questions : dons, dépôt-vente, horaires, conseils…</p>
+        </div>
+      </header>
+      <div id="chat"></div>
+      <div class="suggestions" id="suggestions"></div>
+      <form id="form" autocomplete="off">
+        <input id="input" type="text" placeholder="Écrivez votre question…" />
+        <button type="submit">Envoyer</button>
+      </form>
+    </div>
+
+    <script>
+      const chat = document.getElementById("chat");
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
+      const suggestionsBox = document.getElementById("suggestions");
+
+      // --- Base de connaissances : chaque règle a des mots-clés et une réponse ---
+      const REGLES = [
+        {
+          cles: ["bonjour", "salut", "bonsoir", "coucou", "hello", "hey"],
+          reponse: "Bonjour et bienvenue ! 👋 Je peux vous renseigner sur :\n• Les <b>horaires</b> et l'adresse\n• Les <b>dons</b> (quoi donner, comment)\n• Le <b>dépôt-vente</b>\n• Les <b>prix</b> et moyens de paiement\n• Des <b>conseils</b> (entretien, détachage, upcycling)\n\nQue souhaitez-vous savoir ?"
+        },
+        {
+          cles: ["horaire", "heure", "ouvert", "ferme", "ouvre", "ouverture", "dimanche"],
+          reponse: "🕒 <b>Horaires</b>\n• Mardi – Vendredi : 10h – 18h30\n• Samedi : 10h – 17h\n• Fermé dimanche, lundi et jours fériés.\n\nLa zone de dons ferme 30 min avant la boutique. Pensez à vérifier les horaires exceptionnels sur nos réseaux sociaux !"
+        },
+        {
+          cles: ["adresse", "ou", "situe", "trouve", "localisation", "acces", "parking", "bus", "metro"],
+          reponse: "📍 Nous sommes au <b>12 rue de la Récup', 75000 Ville</b>.\n• Bus : lignes 8 et 12, arrêt « Friperie »\n• Vélo : arceaux devant la boutique\n• Parking gratuit à 100 m (place du Marché)\n\nLa boutique est accessible aux personnes à mobilité réduite."
+        },
+        {
+          cles: ["don", "dons", "donner", "deposer", "apporter", "depot de dons", "vieux vetement"],
+          reponse: "🎁 <b>Donner, c'est simple !</b>\n1. Lavez les textiles et mettez-les dans un sac fermé.\n2. Déposez-les pendant les horaires d'ouverture (dans la limite de 2 sacs par personne et par jour).\n3. Un reçu de don peut vous être remis sur demande.\n\n<b>Accepté :</b> vêtements, chaussures, sacs, linge de maison en bon état, livres, vaisselle, petits meubles, jouets complets.\n<b>Refusé :</b> textiles humides ou moisis, articles cassés, produits dangereux, matériel électrique non testé, sièges auto.\n\nEn savoir plus sur le tri des déchets ? Écrivez « tri »."
+        },
+        {
+          cles: ["tri", "dechet", "jeter", "recyclage", "recycler", "textile dechete", "abime"],
+          reponse: "♻️ <b>Le bon réflexe tri</b>\n• Textiles <b>usés mais secs et propres</b> → points de collecte « Relais » / containers de tri : ils sont recyclés en isolant, chiffons…\n• Vêtements <b>portables</b> → dons en friperie ou ressourcerie\n• Objets cassés → déchetterie ou répar'café\n• Électronique → recyclage en magasin ou déchetterie\n\nUn vêtement déchiré peut aussi devenir une pièce unique : demandez « réparation » !"
+        },
+        {
+          cles: ["depot-vente", "depot vente", "vendre", "consignation", "commission", "proposition de rachat"],
+          reponse: "🏷️ <b>Dépôt-vente</b>\n• Déposez vos articles (max 10 par jour), nos équipes les évaluent.\n• Vos objets sont exposés 8 semaines au prix conseillé.\n• Vous touchez <b>50 %</b> du prix de vente, le reste finance l'association.\n• Prix soldés à -30 % après 4 semaines, -50 % après 6.\n• Invendus : récupérables sous 10 jours, sinon considérés comme don.\n\nPour déposer, venez avec une pièce d'identité et un RIB (IBAN)."
+        },
+        {
+          cles: ["prix", "ca coute", "combien", "tarif", "cher", "pas cher", "budget"],
+          reponse: "💰 <b>Des prix doux</b>\n• T-shirts : 2 – 5 €\n• Pantalons / jeans : 5 – 12 €\n• Vestes & manteaux : 8 – 25 €\n• Chaussures : 4 – 15 €\n• Livres : 1 – 4 €\n• Meubles et électroménager : affichés sur place, testés avant vente.\n\nÉtiquette couleur = semaine d'arrivée, pour suivre les remises du dépôt-vente. À noter : les prix peuvent varier selon l'état et la marque."
+        },
+        {
+          cles: ["paiement", "carte", "espece", "cheque", "payer", "cb", "virement", "cash"],
+          reponse: "💳 Nous acceptons les <b>espèces, la carte bancaire (à partir de 5 €)</b> et les chèques (pièce d'identité demandée). Le <b>Local Swap</b>, notre monnaie solidaire, est aussi accepté !"
+        },
+        {
+          cles: ["nettoyage", "laver", "entretien", "tache", "detacher", "tacher", "odeur", "laine", "soie"],
+          reponse: "🧼 <b>Conseils entretien seconde main</b>\n• Avant de porter : laver à 30° ou laisser 48 h au congélateur dans un sac (anti-acariens !).\n• Taches : liquide vaisselle + eau tiède, ou savon de Marseille frotté avant lavage.\n• <b>Laine</b> : lavage à froid, linge délicat, séchage à plat.\n• <b>Soie</b> : nettoyage à sec de préférence.\n• Odeurs : vaporiser un mélange eau + vinaigre blanc, puis aérer.\n\nDemandez « upcycling » pour donner une seconde vie stylée !"
+        },
+        {
+          cles: ["reparation", "reparer", "coudre", "bouton", "accroche", " trou", "ourlet", "reprisage"],
+          reponse: "🪡 <b>Réparez plutôt que jetez !</b>\n• Bouton à recoudre : passez le fil au double, 4 passages dans les trous, nœud plat côté envers.\n• Petit trou : point caché ou pièce thermocollante côté envers.\n• Ourlet : du ruban thermocollant suffit pour un ourlet rapide.\n\nNotre <b>Repar'café</b> a lieu le 1er samedi du mois (10h – 13h) : bénévoles et machines à coudre à disposition, gratuit !"
+        },
+        {
+          cles: ["upcycling", "customiser", "personnaliser", "tshirt personnalise", "diy", "transformer", "retoucher"],
+          reponse: "✨ <b>Upcycling : modez vos trouvailles</b>\n• T-shirt XL → robe ou sac en franges\n• Jean usé → short, ou poches en organizer mural\n• Foulard → bandeau, chouchou ou ceinture\n• Draps → pochettes réutilisables ou linges\n\nAtelier upcycling le 3e jeudi du mois : 8 €, matériel fourni. Réservation conseillée (10 places) !"
+        },
+        {
+          cles: ["benevolat", "benevole", " aider", "rejoindre", "travailler", "stage", "job"],
+          reponse: "🤝 <b>Rejoindre l'équipe</b>\n• Bénévolat : 3 h/semaine minimum, tous profils bienvenus (tri, caisse, atelier, communication).\n• Service civique et stages possibles toute l'année.\n\nPassez en boutique ou écrivez à benevoles@friperie-exemple.fr pour un premier rendez-vous découverte. Aucune expérience requise, juste l'envie !"
+        },
+        {
+          cles: ["recap", "ressourcerie", "qu'est-ce", "c'est quoi", "mission", "association", "but", "environnement"],
+          reponse: "🌍 <b>Friperie & ressourcerie, kézako ?</b>\nUne friperie revend des vêtements de seconde main ; une ressourcerie collecte, valorise et revend des objets de tous types (meubles, vaisselle, livres, électroménager reconditionné…).\n\n<b>Nos missions :</b>\n• Réduire les déchets et prolonger la vie des objets\n• Rendre la seconde main accessible à toutes et tous\n• Créer de l'emploi et du lien social localement\n\nSaviez-vous qu'1 kg de textile réemployé évite ~3 kg de CO₂ ? 💚"
+        },
+        {
+          cles: ["carte fidelite", "fidelite", "fidélité", "adhesion", "membre", "avantage", "reduction", "remise"],
+          reponse: "🎫 <b>Carte solidaire</b>\n• Gratuite, sur simple demande en boutique\n• <b>-10 %</b> sur les articles dépôt-vente tous les 1ers samedis du mois\n• Une avance-remise réservée aux adhérents sur les rendez-vous dons à domicile.\n• Vous recevez les invitations aux ventes privées et ateliers."
+        },
+        {
+          cles: ["reservation", "reserver", "retenir", "mettre de cote", "plus tard", "payer plus tard"],
+          reponse: "📌 Nous pouvons mettre un article de côté <b>24 h</b> (48 h le week-end). Demandez-le à un bénévole en boutique ou appelez-nous avant 17h. Au-delà, l'article retourne en rayon."
+        },
+        {
+          cles: ["contact", "telephone", "mail", "email", "appeler", "joindre", "reseaux", "instagram", "facebook"],
+          reponse: "📞 <b>Nous joindre</b>\n• Tél : 01 23 45 67 89 (pendant les horaires d'ouverture)\n• E-mail : bonjour@friperie-exemple.fr\n• Instagram / Facebook : @FriperieRessourcerie\n\nRéponse sous 48 h ouvrées. Une question rapide ? Je suis là !"
+        },
+        {
+          cles: ["merci", "super", "genial", "top", "parfait", "cool", "bye", "aurevoir", "au revoir", "ciao"],
+          reponse: "Avec plaisir ! 💚 Merci de faire vivre l'économie circulaire. À très vite en boutique — et n'hésitez pas si vous avez d'autres questions !"
+        }
+      ];
+
+      const REPONSE_DEFAUT = "Je n'ai pas bien compris votre question 😅 Voici les sujets sur lesquels je peux vous aider :\n• <b>Horaires</b> et <b>adresse</b>\n• <b>Dons</b> et <b>tri</b>\n• <b>Dépôt-vente</b> et <b>prix</b>\n• <b>Paiement</b>\n• <b>Entretien</b>, <b>réparation</b> et <b>upcycling</b>\n• <b>Bénévolat</b> et <b>contact</b>\n\nEssayez l'un de ces mots-clés !";
+
+      const SUGGESTIONS = [
+        "Quels sont vos horaires ?",
+        "Comment donner des vêtements ?",
+        "Comment fonctionne le dépôt-vente ?",
+        "Conseil pour enlever une tache",
+        "C'est quoi une ressourcerie ?"
+      ];
+
+      // Normalise le texte : minuscules, sans accents, sans ponctuation
+      function normaliser(t) {
+        return t.toLowerCase()
+          .normalize("NFD").replace(/[̀-ͯ]/g, "")
+          .replace(/[^a-z0-9\s'-]/g, " ");
+      }
+
+      function trouverReponse(texte) {
+        const t = " " + normaliser(texte) + " ";
+        let meilleur = null, meilleurScore = 0;
+        for (const regle of REGLES) {
+          let score = 0;
+          for (const cle of regle.cles) {
+            const k = normaliser(cle).trim();
+            if (t.includes(k)) score += k.length;
+          }
+          if (score > meilleurScore) { meilleurScore = score; meilleur = regle; }
+        }
+        return meilleur ? meilleur.reponse : REPONSE_DEFAUT;
+      }
+
+      function ajouterMessage(html, classe) {
+        const div = document.createElement("div");
+        div.className = "msg " + classe;
+        div.innerHTML = html;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+      }
+
+      function afficherSuggestions() {
+        suggestionsBox.innerHTML = "";
+        SUGGESTIONS.forEach((s) => {
+          const b = document.createElement("button");
+          b.textContent = s;
+          b.onclick = () => envoyer(s);
+          suggestionsBox.appendChild(b);
+        });
+      }
+
+      function envoyer(texte) {
+        const q = (texte || input.value).trim();
+        if (!q) return;
+        ajouterMessage(q.replace(/</g, "&lt;"), "user");
+        input.value = "";
+        suggestionsBox.innerHTML = "";
+
+        // Indicateur de frappe
+        const typing = document.createElement("div");
+        typing.className = "msg bot typing";
+        typing.innerHTML = "<span></span><span></span><span></span>";
+        chat.appendChild(typing);
+        chat.scrollTop = chat.scrollHeight;
+
+        setTimeout(() => {
+          typing.remove();
+          ajouterMessage(trouverReponse(q), "bot");
+          afficherSuggestions();
+        }, 600);
+      }
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        envoyer();
+      });
+
+      // Message d'accueil
+      ajouterMessage("Bonjour ! 👋 Je suis l'assistant de votre friperie-ressourcerie. Posez-moi vos questions, ou choisissez une suggestion ci-dessous.", "bot");
+      afficherSuggestions();
+    </script>
+  </body>
+</html>
