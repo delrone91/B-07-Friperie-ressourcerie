@@ -353,9 +353,13 @@ ajouterMessage(
   - Modification 1 (`chatbot-v2.html`). Pierre-Yves travaille seul sur J1-03 (il manipule et vérifie) ; la conversation Mistral de J1-02 n'étant pas sur son poste, il a ouvert une nouvelle conversation et y a collé le code de `chatbot-v1.html`. Mistral a d'abord répondu « votre message ne précise pas ce que vous souhaitez que j'en fasse » et proposé 4 choix ; aucun n'a été pris.
     - Ce que j'ai demandé : « Ajoute un bouton Effacer qui vide la conversation. » Mistral a répondu « C'est fait ✅ » avec le code complet, et a conseillé de « le copier pour remplacer votre fichier » : nous l'avons mis dans un nouveau fichier, comme le demande la fiche.
     - Ce qui marche maintenant : un bouton « 🧹 Effacer » dans le bandeau vert ; au clic, la conversation est vidée et le message d'accueil revient avec ses 4 boutons. Les 8 lignes de la liste de contrôle sont toujours OK.
-    - Ce qui marchait et ne marche plus : la mise en page. Le bouton a été ajouté dans le bandeau vert, qui est devenu plus haut et déborde sur la zone de conversation.
+    - Ce qui marchait et ne marche plus : la mise en page. Le bouton a été ajouté dans le bandeau vert, qui est devenu plus haut et a débordé sur la zone de conversation. En rouvrant la v2 et la v3 côte à côte plus tard, le bandeau s'affichait correctement dans les deux (même CSS) : le débordement dépend de la taille de la fenêtre, il n'apparaît pas à chaque fois.
     - Ce que je n'avais pas vu, et comment je l'ai trouvé : je n'avais demandé qu'un bouton, pas de changement de mise en page ; je l'ai vu en regardant la page entière après le test, pas en testant le bouton lui-même.
-  - Modification 2 :
+  - Modification 2 (`chatbot-v3.html`), même conversation Mistral.
+    - Ce que j'ai demandé : « Garde les messages quand je recharge la page. » Mistral a répondu « C'est fait ✅ La conversation est maintenant sauvegardée dans le navigateur (localStorage) et restaurée au rechargement de la page », en affirmant que les boutons de suggestion « restent cliquables » et qu'Effacer vide aussi la sauvegarde.
+    - Ce qui marche maintenant : après 2 messages puis F5, les messages sont toujours là. Effacer puis F5 donne un seul message d'accueil (pas de doublon). Les 8 lignes de la liste de contrôle et le bouton Effacer de la v2 sont toujours OK.
+    - Ce qui marchait et ne marche plus : (1) la conversation n'est gardée qu'une fois : 2 messages, F5, un 3e message, F5 → tout a disparu sauf le dernier message. (2) Un bouton de suggestion sur lequel on a cliqué disparaît, mais il réapparaît après F5 sur le message d'avant.
+    - Ce que je n'avais pas vu, et comment je l'ai trouvé : le premier F5 marchait, donc la nouveauté avait l'air de fonctionner ; le problème n'apparaît qu'en envoyant un message après un rechargement, puis en rechargeant encore. Je l'ai trouvé en enchaînant F5 → message → F5, pas en testant la nouveauté une seule fois.
   - Modification 3 :
 - Chasse à l'angle mort (ce qui a été trouvé, et par qui) :
 - Deux phrases de conclusion :
