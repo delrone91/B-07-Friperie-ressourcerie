@@ -3,14 +3,14 @@
 
 Un carnet par binôme, rempli au fil de l'eau avec vos propres mots. Une phrase honnête (« j'ai essayé X, j'ai vu Y, je ne comprends pas pourquoi ») vaut mieux qu'une phrase parfaite recopiée. Aucune donnée personnelle, aucune clé ni jeton, ni l'adresse complète que `dsh web` affiche (elle contient un jeton). C'est aussi votre journal de décisions (astuce 13) : ce que vous avez demandé, ce qui a cassé, ce que vous avez refusé, et pourquoi.
 
-Binôme :
+Binôme : b07
 
-Thème provisoire et public visé :
+Thème provisoire et public visé : friperies et ressourceries. L'assistant sert aux clients des friperies et ressourceries qui veulent connaître les prix, les horaires, les styles proposés et les lieux.
 
 Trois questions auxquelles l'assistant pourrait répondre :
-1.
-2.
-3.
+1. Quels sont les prix habituels en friperie ?
+2. Quels sont les horaires d'ouverture ?
+3. Où trouver une friperie vintage ?
 
 Rôles de départ et moments d'échange :
 
@@ -18,16 +18,20 @@ Rôles de départ et moments d'échange :
 
 Recopiez les valeurs telles que le formateur vous les a remises. Ne les changez pas, ne les échangez pas avec un autre binôme.
 
-- Limite de caractères d'un message (le nombre N) :
-- Premier mot reconnu, en plus de « salut », « aide » et « test » :
-- Second mot reconnu :
+- Limite de caractères d'un message (le nombre N) : 200
+- Premier mot reconnu, en plus de « salut », « aide » et « test » : mission
+- Second mot reconnu : chemin
 
 ## Commandes essayées
 
 Notez le dossier de lancement, la commande et sa sortie exacte, surtout quand un outil a bloqué.
 
-- Dossier :
-- Commande et résultat :
+- Dossier : `atelier`
+- Commande et résultat : `npm start` → le serveur répond sur `http://127.0.0.1:3000`, la page de départ s'affiche.
+- Dossier : `atelier`
+- Commande et résultat : `npm test` → 9 tests, 9 passent, 0 échec.
+- Dossier : racine du paquet
+- Commande et résultat : `git checkout 3347ada -- atelier/public` → les fichiers de la page reviennent à leur état de départ (voir J1-01, décision).
 
 Pour chaque checkpoint : cochez la case quand toute la preuve de la fiche est réunie, collez la preuve (texte, commande ou phrase), puis notez ce que vous avez prédit, essayé, observé, et une difficulté qui reste.
 
@@ -36,9 +40,9 @@ Pour chaque checkpoint : cochez la case quand toute la preuve de la fiche est r�
 ### J1-01 · 🧭 Équipage — [fiche](checkpoints/J1-01-equipage.md)
 
 - [ ] Validé
-- Preuve (page de départ affichée sur votre poste, cahier personnel recopié ci-dessus) :
-- Le `p#status` est-il vide dans le HTML ? Qui écrit sa phrase ?
-- Décision prise ensemble :
+- Preuve (page de départ affichée sur votre poste, cahier personnel recopié ci-dessus) : la page « Cap Web » s'affiche à `http://127.0.0.1:3000` avec le statut « Votre point de départ est prêt. » ; cahier personnel b07 recopié ci-dessus.
+- Le `p#status` est-il vide dans le HTML ? Qui écrit sa phrase ? Oui, dans `index.html` la balise `<p id="status" role="status"></p>` est vide. C'est le script `public/js/app.js` qui écrit la phrase au chargement de la page : `document.querySelector('#status').textContent = 'Votre point de départ est prêt.';`
+- Décision prise ensemble : la page de l'atelier avait été modifiée trop tôt (titre, liste, couleurs, commit « étape 3 »), alors que J1-01 demande de ne pas la toucher et que les modifications de J1-03 se font dans `essais-n0`. Nous avons remis `atelier/public` à son état de départ.
 - Difficulté qui reste :
 
 ### J1-02 · 💬 Premier prompt — [fiche](checkpoints/J1-02-premier-prompt.md)
