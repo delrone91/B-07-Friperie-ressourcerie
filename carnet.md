@@ -448,14 +448,54 @@ ajouterMessage(
 
 ### J1-06 · 🧱 Anatomie d'un prompt — [fiche](checkpoints/J1-06-anatomie-dun-prompt.md)
 
-- [ ] Validé
-- Preuve (deux prompts, deux résultats, grille remplie, commit du squelette) :
+- [x] Validé
+- Preuve (deux prompts, deux résultats, grille remplie, commit du squelette) : les deux prompts et les deux résultats sont ci-dessous ; la page du prompt structuré s'affiche à `http://127.0.0.1:3000` (formulaire, liste vide, statut) ; `npm test` → 9 tests, 9 passent ; commit « J1 : squelette de Cap Web (prompt structuré) ».
 - Prompt vague et ce que montre la page (trois lignes, fichiers touchés) :
+  - Prompt envoyé tel quel : « Écris la page de Cap Web : un formulaire, une liste de messages et un statut. »
+  - Ce que montre la page : le titre « Cap Web », une phrase d'introduction, une liste vide, un champ « Votre message » avec un bouton « Envoyer » ; à l'envoi, la page ne se recharge pas et le statut affiche « Message envoyé. ». Console : seulement `GET /favicon.ico 404`, normal puisque le serveur ne sert que trois fichiers.
+  - Fichiers touchés (`git status -- atelier`) : `public/index.html`, `public/styles.css`, `public/js/app.js` (24 lignes ajoutées, 3 supprimées), aucun fichier nouveau. Trois demandes d'écriture, toutes dans `public/`, autorisées une fois chacune.
+  - Ce que l'agent a fait avant d'écrire (vu dans ses appels d'outils) : il a lu tout `atelier`, puis **hors de son dossier** les fiches `checkpoints/J1-06` et `J1-07` et la copie de référence `reprise/atelier-p03/public/`. C'est pour cela que le prompt vague donne exactement les quatre identifiants du prompt structuré (`chat-form`, `message`, `messages`, `status`) : l'essai « vague » est faussé. Read Only n'empêche pas la lecture (notice, section 9).
+  - Ce que l'agent a affirmé et qui est faux : « le lang/label viendront du prompt structuré », alors que `lang="fr"` et `<label for="message">` sont déjà dans sa page. Ce qui est vrai : « npm test est vert (9/9) », vérifié en relançant `npm test`.
 - Prompt structuré, en six parties, tel qu'envoyé :
+
+  ```text
+  RÔLE : Tu es développeur web. Tu écris du HTML, du CSS et du JavaScript sans bibliothèque, pour des débutants.
+  TÂCHE : Écris le squelette de la page de « Cap Web », un assistant pour les clients des friperies et ressourceries (prix, horaires, style, lieux) : un formulaire, une liste de messages, une ligne de statut.
+  CONTRAINTES :
+  - Modifie uniquement public/index.html, public/styles.css et public/js/app.js. Le serveur ne sert que ces trois fichiers : n'en crée aucun autre.
+  - Garde ces identifiants : form#chat-form, textarea#message, ul#messages, p#status.
+  - Le champ #message est limité à 200 caractères (maxlength).
+  - Le contenu de la page est dans un main. Un seul h1 (« Cap Web »), un label lié au champ, un bouton « Envoyer », p#status avec role="status", html lang="fr". Aucune bibliothèque, aucune adresse https://.
+  FORMAT DE SORTIE : d'abord la liste de tes hypothèses (cinq au plus), puis tu t'arrêtes. Après mon « ok », tu écris les trois fichiers, puis tu réponds par la liste des fichiers écrits.
+  EXEMPLES ET CONTRE-EXEMPLES : voulu : <button type="submit">Envoyer</button>. Refusé : <div onclick="envoyer()">Envoyer</div> (ce n'est pas un bouton) ; un fichier script.js à côté de app.js (le serveur répondrait 404).
+  CRITÈRE D'ARRÊT : app.js empêche seulement le rechargement de la page à l'envoi et écrit alors « Interface prête. » dans le statut ; il n'ajoute aucun message à la liste. Quand les trois fichiers sont écrits, tu t'arrêtes.
+  ```
 - Les hypothèses de l'agent, et ma réponse :
+  - Première session (aucune lecture de `../checkpoints` dans ses appels d'outils) : 5 hypothèses, dont la n°3 « textarea#message porte maxlength="200", avec name, rows et required ». J'allais refuser `required` (non demandé : le navigateur bloquerait lui-même le message vide avant notre JavaScript, alors que J1-09 demande un refus « avec un statut visible »). La session a été perdue (dsh arrêté) avant ma réponse.
+  - Deuxième session, même prompt, autres hypothèses :
+    1. Page en <!DOCTYPE html> avec html lang="fr", contenu dans un seul main : un seul h1 « Cap Web », une phrase d'introduction sur l'assistant friperies / ressourceries, form#chat-form, ul#messages vide, p#status avec role="status".
+    2. Formulaire : label for="message" lié à textarea#message avec maxlength="200", et <button type="submit">Envoyer</button>.
+    3. Liens sans créer de fichier : <link rel="stylesheet" href="styles.css"> et <script src="js/app.js"> relatifs à public/, sans bibliothèque ni adresse https://.
+    4. CSS minimal dans public/styles.css, sans import externe.
+    5. public/js/app.js se limite à empêcher le rechargement à l'envoi (preventDefault) et à écrire « Interface prête. » dans #status, sans ajouter de message à la liste.
+  - Écarts entre les deux sessions : `required` a disparu, le formulaire passe avant la liste, une phrase d'introduction apparaît, et le script n'est plus en module.
+  - Hypothèse corrigée : la 3 enlève `type="module"`, alors que la page de départ l'a et que J1-09 fera des `import` (impossible dans un script classique).
+  - Ma réponse : « ok, sauf l'hypothèse 3 : garde le script en module, exactement comme dans la page actuelle : `<script type="module" src="./js/app.js"></script>`. »
+- Résultat du prompt structuré : la page montre « Cap Web », la phrase « Assistant pour les clients des friperies et ressourceries : prix, horaires, style, lieux. », une liste vide, le champ « Votre message » limité à 200 caractères et le bouton « Envoyer » ; à l'envoi, pas de rechargement et le statut affiche « Interface prête. ». Console sans erreur (hors `favicon.ico` 404). Fichiers touchés : `public/index.html`, `public/styles.css`, `public/js/app.js` (18 lignes ajoutées, 2 supprimées), aucun nouveau. Petit écart : son hypothèse 1 annonçait le formulaire avant la liste, il a écrit la liste avant le formulaire.
 - La grille (✔ ou ✘ et un mot, pour « vague » puis « structuré ») :
-- Une phrase : entre les deux résultats, ce qui a le plus changé, c'est… parce que la partie… de mon prompt disait…
-- Difficulté qui reste :
+
+  | Critère | Prompt vague | Prompt structuré |
+  |---|---|---|
+  | La page s'affiche sans erreur (F12, onglet Console) | ✔ seul `favicon.ico` 404 | ✔ seul `favicon.ico` 404 |
+  | Formulaire, liste et statut sont là, avec les quatre identifiants | ✔ mais identifiants copiés depuis la fiche J1-06 lue hors `atelier` | ✔ demandés dans le prompt |
+  | Seuls les trois fichiers autorisés ont changé (`git status -- atelier`) | ✔ | ✔ |
+  | `npm test` reste vert | ✔ 9/9 | ✔ 9/9 |
+  | Aucune bibliothèque, aucune adresse `https://` | ✔ | ✔ |
+  | La limite du cahier personnel (200) est appliquée | ✘ pas de `maxlength` | ✔ `maxlength="200"`, vérifié en collant 201 caractères |
+  | Le script reste un module (`type="module"`) | ✔ | ✔ après correction de son hypothèse 3 |
+  | Vous savez expliquer chaque partie de la page en une phrase | ✔ | ✔ |
+- Une phrase : entre les deux résultats, ce qui a le plus changé, c'est le contrôle que j'ai eu avant l'écriture : la limite de 200 caractères et le script en module sont là parce que la partie CONTRAINTES de mon prompt donnait la limite, et parce que la partie FORMAT DE SORTIE l'obligeait à lister ses hypothèses et à attendre mon « ok », ce qui m'a permis de corriger `required` puis l'oubli de `type="module"` avant qu'il écrive. Sans prompt précis, il est allé chercher la réponse tout seul dans la fiche du formateur.
+- Difficulté qui reste : l'essai vague n'est pas une vraie comparaison, puisque l'agent a lu la consigne hors de son dossier ; et les hypothèses changent d'une session à l'autre (`required` d'abord, puis le script sans module) : il faut les relire à chaque fois.
 
 ### J1-07 · 👣 Petits pas — [fiche](checkpoints/J1-07-petits-pas.md)
 
