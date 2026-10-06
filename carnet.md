@@ -502,6 +502,15 @@ ajouterMessage(
 - [ ] Validé
 - Preuve (découpage écrit avant la première demande, trois diffs relus, un refus écrit, un commit par étape acceptée, trois boutons de questions qui fonctionnent) :
 - La tâche, mes trois questions et mon découpage en trois étapes (écrit avant la première demande d'écriture) :
+  - Tâche : afficher sous le formulaire nos trois questions de J1-01 en boutons ; un clic sur un bouton copie la question dans le champ, sans l'envoyer. Fichiers : `public/index.html` et `public/js/app.js`.
+  - Nos trois questions (aucune ne contient « envoyer ») :
+    1. Quels sont les prix habituels en friperie ?
+    2. Quels sont les horaires d'ouverture ?
+    3. Où trouver une friperie vintage ?
+  - Mon découpage :
+    1. Dans `index.html` seulement : une liste `ul#suggestions` de trois boutons `type="button"`, un par question, écrits dans le HTML. Test : F5, les trois boutons s'affichent et ne font rien.
+    2. Dans `app.js` seulement : un clic sur un bouton copie son texte dans `#message`. Test : clic, le texte arrive dans le champ, le statut ne change pas (rien n'est envoyé).
+    3. Dans `app.js` : après le clic, le curseur est dans le champ et le statut dit « Question copiée : modifiez-la ou envoyez-la. » Test : clic, on peut taper directement, le statut affiche la phrase.
 - Ce que l'agent a proposé comme découpage, ce que j'ai gardé, pourquoi :
 - Mon refus écrit : ce que l'agent avait fait, pourquoi je le refuse, ce que j'ai demandé à la place :
 - Difficulté qui reste :
